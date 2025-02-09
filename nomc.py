@@ -52,17 +52,20 @@ for ln, line in enumerate(argv.input):
     printf(LINE_BRKS[line])
     continue
 
-  # e.g.
-  #   𡨸喃 quốc ngữ
-  if line.count(' ') < 1:
-    die(ln, 'Missing quốc ngữ')
   # handle sino-vocab marker
   if sino := line.startswith('-'):
     line = line[1:]  # rm it before splitting
-  # sep on 1st spc
-  nom, quoc = line.split(' ', 1)
-  if not nom or not quoc:
-    die(ln, 'Missing text before/after space')
+  if line.count(' ') < 1:
+    # optionally these are not annotated
+    nom, quoc = line, ''
+  else:
+    # e.g.
+    #   𡨸喃 quốc ngữ
+    nom, quoc = line.split(' ', 1)
+    if not quoc:
+      die(ln, 'Missing quốc ngữ')
+  if not nom:
+    die(ln, 'Missing chữ nôm')
 
   # create a new tag first?
   if sino != curr_sino:
@@ -76,6 +79,7 @@ for ln, line in enumerate(argv.input):
       printf('<ruby>', end='')
     curr_sino = sino
 
+  # FIXME: dont add rt if quoc is empty
   printf(f'<rb>{nom}</rb><rt>{quoc}</rt>', end='')
 
 # epilogue
