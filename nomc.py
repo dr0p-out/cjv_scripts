@@ -83,6 +83,7 @@ for ln, line in enumerate(argv.input):
   printf(f'<rb>{nom}</rb><rt>{quoc}</rt>', end='')
 
 # epilogue
-printf('</ruby>')  # end final tag
+if curr_sino is not None:
+  printf('</ruby>')  # end last tag
 printf('<!-- end -->')
 printf('</body></html>')
