@@ -24,6 +24,20 @@ def die(ln_: int, msg):
   print(f'L{ln_ + 1}: {msg}', file=sys.stderr)
   sys.exit(1)
 
+ESC = '\\'
+ESCS = ('', '-', '.', ESC)
+
+def esc(ln_: int, s: str) -> str:
+  if len(s) <= 2 and s[0] == ESC:
+    char = s[1:]
+    if char not in ESCS:
+      die(ln_, f'Unknown escape {char!r}')
+    # this syntax for inserting spc
+    if not char:
+      char = ' '
+    s = char
+  return s
+
 # prologue
 printf('''\
 <!DOCTYPE html>
@@ -57,7 +71,7 @@ for ln, line in enumerate(argv.input):
     line = line[1:]  # rm it before splitting
   if line.count(' ') < 1:
     # optionally these are not annotated
-    nom, quoc = line, ''
+    nom, quoc = esc(ln, line), ''
   else:
     # e.g.
     #   𡨸喃 quốc ngữ
