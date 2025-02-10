@@ -12,7 +12,8 @@ ap = argparse.ArgumentParser(
 ap.add_argument(
   'input',
   type=argparse.FileType('r'),
-  default=sys.stdin
+  default=sys.stdin,
+  nargs='?'
 )
 ap.add_argument(
   '--output', '-o',
