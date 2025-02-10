@@ -10,7 +10,7 @@ def err(*args, **kwargs):
   print(*args, **kwargs, file=sys.stderr)
 
 try:
-  from PySide6.QtCore import Qt, QEvent, Slot
+  from PySide6.QtCore import Qt, QEvent, QTimer, Slot
   from PySide6.QtGui import QPalette, QShortcut
   from PySide6.QtWebEngineCore import QWebEngineSettings
   from PySide6.QtWebEngineWidgets import QWebEngineView
@@ -71,9 +71,22 @@ class NomEdit(QTextEdit):
     self.setPlaceholderText('Type here…')
     self.setAcceptRichText(False)
     self.textChanged.connect(self.__handle_kb)
+    self.__timer: QTimer | None = None
 
   @Slot()
   def __handle_kb(self):
+    # re-render only after a small idle for perf
+    # SAFETY: we're single-thr
+    if (t := self.__timer) and t.isActive():
+      t.stop()
+    self.__timer = t = QTimer()
+    t.setInterval(1000)
+    t.setSingleShot(True)
+    t.timeout.connect(self.__do_render)
+    t.start()
+
+  @Slot()
+  def __do_render(self):
     pass
 
 class EditorWidget(QWidget):
