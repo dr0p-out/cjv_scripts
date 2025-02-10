@@ -9,7 +9,11 @@ import sys
 ap = argparse.ArgumentParser(
   description='render .nom gloss draft into HTML'
 )
-ap.add_argument('input', type=argparse.FileType('r'))
+ap.add_argument(
+  'input',
+  type=argparse.FileType('r'),
+  default=sys.stdin
+)
 ap.add_argument(
   '--output', '-o',
   type=argparse.FileType('w'),
