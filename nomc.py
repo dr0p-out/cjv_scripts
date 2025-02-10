@@ -96,6 +96,9 @@ for ln, line in enumerate(argv.input):
     else:
       printf('<ruby>', end='')
     curr_sino = sino
+  else:
+    # HACK: fix spc between words
+    printf('<rb> </rb><rt></rt>', end='')
 
   # FIXME: dont add rt if quoc is empty
   printf(f'<rb>{nom}</rb><rt>{quoc}</rt>', end='')
