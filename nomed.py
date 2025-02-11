@@ -12,7 +12,7 @@ def err(*args, **kwargs):
 
 try:
   from PySide6.QtCore import (
-    Qt, QEvent,
+    Qt, QCommandLineOption, QCommandLineParser, QEvent,
     QProcess,
     QTimer, Slot
   )
@@ -171,6 +171,24 @@ class EditorWidget(QWidget):
     pass
 
 qa = QApplication(sys.argv)
+ap = QCommandLineParser()
+ap.setApplicationDescription(
+  'small Qt-based GUI frontend for editing .nom'
+)
+ap.addHelpOption()
+ap.addPositionalArgument('file', '')
+opt_v = QCommandLineOption(
+  ('v', 'view'),
+  'Open file in viewer (read-only) mode.'
+)
+ap.addOption(opt_v)
+ap.process(qa)
+argv = ap.positionalArguments()
+if len(argv) > 1:
+  err(
+    f'{sys.argv[0]}: Too many positional arguments'
+  )
+  sys.exit(1)
 
 pv = SucklessWebView()
 pv.show()
