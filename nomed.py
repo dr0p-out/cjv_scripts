@@ -203,6 +203,16 @@ class EditorWidget(QWidget):
         f'\n\n{e.strerror}'
       )
 
+class CloseKeyBind(QShortcut):
+  def __init__(self, *args, **kwargs):
+    QShortcut.__init__(self, *args, **kwargs)
+    self.setKey(Qt.Modifier.CTRL | Qt.Key.Key_W)
+    self.activated.connect(self.__do_close)
+
+  @Slot()
+  def __do_close(self):
+    qa.quit()
+
 qa = QApplication(sys.argv)
 ap = QCommandLineParser()
 ap.setApplicationDescription(
@@ -223,9 +233,11 @@ if len(argv) > 1:
   )
   sys.exit(1)
 
-pv = SucklessWebView()
+roots = []
+roots.append(pv := SucklessWebView())
 pv.show()
-ed = EditorWidget()
+roots.append(ed := EditorWidget())
 ed.show()
+quit_keys = [ CloseKeyBind(root) for root in roots ]
 
 sys.exit(qa.exec())
