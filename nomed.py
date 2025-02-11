@@ -21,6 +21,7 @@ try:
   from PySide6.QtWebEngineWidgets import QWebEngineView
   from PySide6.QtWidgets import (
     QApplication,
+    QMessageBox,
     QPlainTextEdit, QPushButton,
     QVBoxLayout, QWidget
   )
@@ -158,6 +159,29 @@ class EditorWidget(QWidget):
     key.activated.connect(self.__on_key_seq)
     self.setWindowTitle('Nôm Editor')
 
+    if argv:
+      # try to populate content
+      try:
+        with open(argv[0], 'r') as f:
+          # this alr triggers render
+          nom.setPlainText(f.read())
+      except OSError as e:
+        QMessageBox.warning(
+          self,
+          'Warning',
+          f'Unable to read input file {argv[0]!r}:'
+          f'\n\n{e.strerror}'
+        )
+      except UnicodeDecodeError:
+        QMessageBox.warning(
+          self,
+          'Warning',
+          f'Rejecting input file {argv[0]!r} '
+          'containing invalid char.'
+        )
+      else:
+        btn.setEnabled(True)
+
   def closeEvent(self, ev: QEvent):
     pv.close()  # closes each other
     QWidget.closeEvent(self, ev)
@@ -168,7 +192,16 @@ class EditorWidget(QWidget):
 
   @Slot()
   def __do_save(self):
-    pass
+    try:
+      with open(argv[0], 'w') as f:
+        f.write(self.__nom.toPlainText())
+    except OSError as e:
+      QMessageBox.warning(
+        self,
+        'Warning',
+        f'Failed writing output file {argv[0]!r}:'
+        f'\n\n{e.strerror}'
+      )
 
 qa = QApplication(sys.argv)
 ap = QCommandLineParser()
