@@ -159,6 +159,10 @@ class EditorWidget(QWidget):
     key.activated.connect(self.__on_key_seq)
     self.setWindowTitle('Nôm Editor')
 
+    view_only = ap.isSet(opt_v)
+    if view_only:
+      nom.setReadOnly(True)
+
     if argv:
       # try to populate content
       try:
@@ -180,7 +184,8 @@ class EditorWidget(QWidget):
           'containing invalid char.'
         )
       else:
-        btn.setEnabled(True)
+        if not view_only:
+          btn.setEnabled(True)
 
   def closeEvent(self, ev: QEvent):
     pv.close()  # closes each other
