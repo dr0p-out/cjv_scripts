@@ -21,7 +21,7 @@ try:
   from PySide6.QtWebEngineWidgets import QWebEngineView
   from PySide6.QtWidgets import (
     QApplication,
-    QPushButton, QTextEdit,
+    QPlainTextEdit, QPushButton,
     QVBoxLayout, QWidget
   )
 except ImportError:
@@ -72,14 +72,13 @@ class SucklessWebView(QWebEngineView):
 BINDIR = os.path.dirname(__file__)
 NOMC_PATH = os.path.join(BINDIR, 'nomc.py')
 
-class NomEdit(QTextEdit):
+class NomEdit(QPlainTextEdit):
   # let us hold obj ownership
   # pylint: disable=unused-private-member
   def __init__(self, *args, **kwargs):
-    QTextEdit.__init__(self, *args, **kwargs)
+    QPlainTextEdit.__init__(self, *args, **kwargs)
     self.setStyleSheet('font-family: "Gothic Nguyen"')
     self.setPlaceholderText('Type here…')
-    self.setAcceptRichText(False)
     self.textChanged.connect(self.__handle_kb)
     self.__timer: QTimer | None = None
     self.__proc: QProcess | None = None
