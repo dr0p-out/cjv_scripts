@@ -3,6 +3,7 @@
 minimalist real-time .nom writer
 """
 
+import os.path
 import sys
 import traceback
 
@@ -10,7 +11,11 @@ def err(*args, **kwargs):
   print(*args, **kwargs, file=sys.stderr)
 
 try:
-  from PySide6.QtCore import Qt, QEvent, QTimer, Slot
+  from PySide6.QtCore import (
+    Qt, QEvent,
+    QProcess,
+    QTimer, Slot
+  )
   from PySide6.QtGui import QPalette, QShortcut
   from PySide6.QtWebEngineCore import QWebEngineSettings
   from PySide6.QtWebEngineWidgets import QWebEngineView
@@ -64,7 +69,12 @@ class SucklessWebView(QWebEngineView):
     ed.close()  # closes each other
     QWebEngineView.closeEvent(self, ev)
 
+BINDIR = os.path.dirname(__file__)
+NOMC_PATH = os.path.join(BINDIR, 'nomc.py')
+
 class NomEdit(QTextEdit):
+  # let us hold obj ownership
+  # pylint: disable=unused-private-member
   def __init__(self, *args, **kwargs):
     QTextEdit.__init__(self, *args, **kwargs)
     self.setStyleSheet('font-family: "Gothic Nguyen"')
@@ -72,6 +82,7 @@ class NomEdit(QTextEdit):
     self.setAcceptRichText(False)
     self.textChanged.connect(self.__handle_kb)
     self.__timer: QTimer | None = None
+    self.__proc: QProcess | None = None
 
   @Slot()
   def __handle_kb(self):
@@ -87,7 +98,47 @@ class NomEdit(QTextEdit):
 
   @Slot()
   def __do_render(self):
-    pass
+    self.__proc = p = QProcess()
+    p.setProgram(NOMC_PATH)
+    p.setArguments(('-', '-o', '-'))
+    p.errorOccurred.connect(self.__on_err)
+    p.finished.connect(self.__on_finish)
+    p.started.connect(self.__on_started)
+    p.start()
+
+  @Slot()
+  def __on_err(self, err: QProcess.ProcessError):
+    # usually, fork()/exec() failure
+    self.__show_err(self.__proc.errorString())
+
+  def __show_err(self, s: str):
+    b = s.encode()
+    pv.setContent(b, 'text/plain;charset=UTF-8')
+
+  @Slot()
+  def __on_finish(self):
+    # usually, exit() called
+    if (p := self.__proc).exitCode() == 0:
+      # nomc succeeded
+      html = p.readAllStandardOutput()
+      try:
+        # TODO: workaround 2MB limit
+        pv.setHtml(html.data().decode())
+      except UnicodeDecodeError:
+        self.__show_err('Output contains invalid char')
+    else:
+      # nomc failed
+      err = p.readAllStandardError()
+      try:
+        self.__show_err(err.data().decode())
+      except UnicodeDecodeError:
+        self.__show_err('Error contains invalid char')
+
+  @Slot()
+  def __on_started(self):
+    data = self.toPlainText().encode()
+    (p := self.__proc).write(data)
+    p.closeWriteChannel()  # eof
 
 class EditorWidget(QWidget):
   # no, we want to hold ref of these
