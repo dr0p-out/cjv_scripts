@@ -149,6 +149,7 @@ class EditorWidget(QWidget):
     self.__btn = btn = QPushButton()
     btn.setText('保存／書き込み(S)')
     btn.clicked.connect(self.__do_save)
+    btn.setDisabled(True)
     box.addWidget(btn)
     self.__nom = nom = NomEdit()
     box.addWidget(nom)
