@@ -3,6 +3,7 @@
 minimalist real-time .nom writer
 """
 
+import os
 import os.path
 import sys
 import traceback
@@ -80,7 +81,16 @@ class NomEdit(QPlainTextEdit):
     QPlainTextEdit.__init__(self, *args, **kwargs)
     self.setStyleSheet('font-family: "Gothic Nguyen"')
     self.setPlaceholderText('Type here…')
-    self.textChanged.connect(self.__handle_kb)
+    if os.access(NOMC_PATH, os.X_OK):
+      self.textChanged.connect(self.__handle_kb)
+    else:
+      QMessageBox.warning(
+        self,
+        'Warning',
+        'Unable to find nomc under script location,'
+        ' or it\'s not executable.\n\n'
+        'Previews will not render.'
+      )
     self.__timer: QTimer | None = None
     self.__proc: QProcess | None = None
 
