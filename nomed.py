@@ -17,12 +17,14 @@ try:
     QProcess,
     QTimer, Slot
   )
-  from PySide6.QtGui import QPalette, QShortcut
+  from PySide6.QtGui import (
+    QPalette, QShortcut, QTextCursor
+  )
   from PySide6.QtWebEngineCore import QWebEngineSettings
   from PySide6.QtWebEngineWidgets import QWebEngineView
   from PySide6.QtWidgets import (
-    QApplication,
-    QMessageBox,
+    QApplication, QHBoxLayout,
+    QInputDialog, QMessageBox,
     QPlainTextEdit, QPushButton,
     QVBoxLayout, QWidget
   )
@@ -157,16 +159,27 @@ class EditorWidget(QWidget):
     QWidget.__init__(self, *args, **kwargs)
     self.__layout = box = QVBoxLayout()
     self.setLayout(box)
+    self.__rod = rod = QWidget()
+    self.__bar = toolbar = QHBoxLayout()
+    rod.setLayout(toolbar)
+    box.addWidget(rod)
     self.__btn = btn = QPushButton()
     btn.setText('保存／書き込み(S)')
     btn.clicked.connect(self.__do_save)
     btn.setDisabled(True)
-    box.addWidget(btn)
+    toolbar.addWidget(btn)
+    self.__jmp = jmp = QPushButton()
+    jmp.setText('Go-To Line…(G)')
+    jmp.clicked.connect(self.__do_jmp)
+    toolbar.addWidget(jmp)
     self.__nom = nom = NomEdit()
     box.addWidget(nom)
     self.__keybind = key = QShortcut(self)
     key.setKey(Qt.Modifier.CTRL | Qt.Key.Key_S)
     key.activated.connect(self.__on_key_seq)
+    self.__key_jmp = key_jmp = QShortcut(self)
+    key_jmp.setKey(Qt.Modifier.CTRL | Qt.Key.Key_G)
+    key_jmp.activated.connect(self.__on_key_jmp)
     self.setWindowTitle('Nôm Editor')
 
     view_only = ap.isSet(opt_v)
@@ -217,6 +230,26 @@ class EditorWidget(QWidget):
         f'Failed writing output file {argv[0]!r}:'
         f'\n\n{e.strerror}'
       )
+
+  @Slot()
+  def __do_jmp(self):
+    doc = (nom := self.__nom).document()
+    val, ok = QInputDialog.getInt(
+      self,
+      'Go-To Line…',
+      'Enter destination line number to jump to:',
+      minValue=1,
+      maxValue=doc.lineCount()
+    )
+    if ok:
+      blk = doc.findBlockByLineNumber(val - 1)
+      cur = QTextCursor(blk)
+      nom.setFocus()
+      nom.setTextCursor(cur)
+
+  @Slot()
+  def __on_key_jmp(self):
+    self.__jmp.animateClick()
 
 class CloseKeyBind(QShortcut):
   def __init__(self, *args, **kwargs):
