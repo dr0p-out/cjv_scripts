@@ -86,6 +86,10 @@ for ln, line in enumerate(argv.input):
   if not nom:
     die(ln, 'Missing chữ nôm')
 
+  # HACK: fix spc between words
+  if curr_sino is not None:
+    printf('<rb>&nbsp;</rb><rt></rt>', end='')
+
   # create a new tag first?
   if sino != curr_sino:
     # end current tag first (if any)
@@ -97,9 +101,6 @@ for ln, line in enumerate(argv.input):
     else:
       printf('<ruby>', end='')
     curr_sino = sino
-  else:
-    # HACK: fix spc between words
-    printf('<rb>&nbsp;</rb><rt></rt>', end='')
 
   # FIXME: dont add rt if quoc is empty
   printf(f'<rb>{nom}</rb><rt>{quoc}</rt>', end='')
